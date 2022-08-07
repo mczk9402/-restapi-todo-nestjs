@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -10,11 +11,18 @@ import {
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
-import { Msg } from './interfaces/auth.interface';
+import { Csrf, Msg } from './interfaces/auth.interface';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authServise: AuthService) {}
+
+  @Get('/csrf')
+  getCsrfToken(@Req() req: Request): Csrf {
+    return {
+      csrfToken: req.csrfToken(),
+    };
+  }
 
   @Post('signup')
   signUp(@Body() dto: AuthDto): Promise<Msg> {
@@ -31,7 +39,7 @@ export class AuthController {
 
     res.cookie('access_token', jwt.accessToken, {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: 'none',
       path: '/',
     });
@@ -46,7 +54,7 @@ export class AuthController {
   logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Msg {
     res.cookie('access_token', '', {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: 'none',
       path: '/',
     });
